@@ -173,14 +173,14 @@ export default function ResultsPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button
+            {/* <Button
               onClick={() => router.push("/leaderboard")}
               size="lg"
               variant="outline"
               className="flex-1 text-lg"
             >
               Ver Leaderboard
-            </Button>
+            </Button> */}
             <Button
               onClick={handleBackToStart}
               size="lg"

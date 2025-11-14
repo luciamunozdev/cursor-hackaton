@@ -35,14 +35,14 @@ export default function Home() {
             >
               Jugar Solo
             </Button>
-            <Button
+            {/* <Button
               size="lg"
               variant="outline"
               className="text-lg px-8 py-6"
               onClick={() => router.push("/leaderboard")}
             >
               Ver Leaderboard
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
       </main>

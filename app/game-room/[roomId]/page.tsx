@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getRoomById, updateRoomStatus, getRoomParticipants, updateParticipantAnswer, saveParticipantAnswer } from "@/lib/supabase/rooms";
 import { supabase } from "@/lib/supabase/client";
-import { quizData, type Difficulty } from "@/lib/quiz-data";
+import { quizData, type Difficulty, getQuestionText, getQuestionOptions, getOptionOrder } from "@/lib/quiz-data";
 import { calculatePoints } from "@/lib/utils/scoring";
 import type { GameRoom, RoomParticipant } from "@/lib/supabase/rooms";
 import { toast } from "sonner";
@@ -167,13 +167,20 @@ export default function GameRoomPage() {
     const answerTime = Math.floor((Date.now() - questionStartTime) / 1000);
     setHasAnswered(true);
 
-    // Actualizar respuesta del participante
-    await updateParticipantAnswer(participantId.current, selectedAnswer, answerTime);
+    // Obtener pregunta actual usando el orden aleatorio y el idioma
+    const allQuestions = quizData[room.difficulty];
+    const questionOrder = room.question_order || allQuestions.map(q => q.id);
+    const currentQuestionId = questionOrder[currentQuestionIndex];
+    const currentQuestion = allQuestions.find(q => q.id === currentQuestionId);
+    
+    if (!currentQuestion) return;
+    
+    const optionOrder = getOptionOrder(currentQuestion.id, room.room_code);
+    const selectedActualIndex = optionOrder[selectedAnswer];
+    const isCorrect = selectedActualIndex === currentQuestion.correctIndex;
 
-    // Guardar respuesta
-    const questions = quizData[room.difficulty];
-    const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === currentQuestion.correctIndex;
+    // Actualizar respuesta del participante con el índice real
+    await updateParticipantAnswer(participantId.current, selectedActualIndex, answerTime);
 
     // Calcular puntos basados en el tiempo (solo si es correcta)
     const points = isCorrect ? calculatePoints(answerTime) : 0;
@@ -182,26 +189,27 @@ export default function GameRoomPage() {
       participantId.current,
       room.id,
       currentQuestionIndex,
-      selectedAnswer,
+      selectedActualIndex,
       isCorrect,
       answerTime,
       points
     );
 
+    const language = room.language || 'es';
     if (isCorrect) {
-      toast.success(`¡Correcto! +${points} puntos`);
+      toast.success(language === 'es' ? `¡Correcto! +${points} puntos` : `Correct! +${points} points`);
     } else {
-      toast.error("Incorrecto");
+      toast.error(language === 'es' ? "Incorrecto" : "Incorrect");
     }
   };
 
   const handleNextQuestion = async () => {
     if (!roomId.current || !room) return;
 
-    const questions = quizData[room.difficulty];
+    const allQuestions = quizData[room.difficulty];
     const nextIndex = currentQuestionIndex + 1;
 
-    if (nextIndex >= questions.length) {
+    if (nextIndex >= allQuestions.length) {
       // Fin del juego
       await updateRoomStatus(roomId.current, 'finished');
       router.push(`/game-results/${roomId.current}`);
@@ -218,10 +226,28 @@ export default function GameRoomPage() {
     );
   }
 
-  const questions = quizData[room.difficulty];
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  // Obtener preguntas ordenadas y pregunta actual
+  const allQuestions = quizData[room.difficulty];
+  const questionOrder = room.question_order || allQuestions.map(q => q.id);
+  const currentQuestionId = questionOrder[currentQuestionIndex];
+  const currentQuestion = allQuestions.find(q => q.id === currentQuestionId);
+  const language = room.language || 'es';
+  
+  if (!currentQuestion) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Cargando pregunta...</p>
+      </div>
+    );
+  }
+  
+  const questionText = getQuestionText(currentQuestion, language);
+  const baseOptions = getQuestionOptions(currentQuestion, language);
+  const optionOrder = getOptionOrder(currentQuestion.id, room.room_code);
+  const orderedOptions = optionOrder.map((index) => baseOptions[index]);
+  const displayCorrectIndex = optionOrder.indexOf(currentQuestion.correctIndex);
+  const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
+  const isLastQuestion = currentQuestionIndex === allQuestions.length - 1;
 
   const getDifficultyColor = (diff: Difficulty) => {
     switch (diff) {
@@ -236,31 +262,32 @@ export default function GameRoomPage() {
 
   // Pantalla de espera
   if (room.status === 'waiting') {
+    const waitingLanguage = room.language || 'es';
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-2 sm:p-4">
         <div className="max-w-4xl mx-auto">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Sala: {room.room_code}</CardTitle>
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="text-xl sm:text-2xl">Sala: {room.room_code}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-6">
               <div className="space-y-4">
-                <p className="text-lg">
-                  Jugadores: {participants.length} / {room.max_players}
+                <p className="text-base sm:text-lg">
+                  {waitingLanguage === 'es' ? 'Jugadores' : 'Players'}: {participants.length} / {room.max_players}
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
                   {participants.map((p) => (
-                    <div key={p.id} className="flex flex-col items-center p-3 rounded-lg border">
+                    <div key={p.id} className="flex flex-col items-center p-2 sm:p-3 rounded-lg border">
                       <Image
                         src={p.avatar_url}
                         alt={p.player_name}
-                        width={60}
-                        height={60}
-                        className="rounded-full mb-2"
+                        width={50}
+                        height={50}
+                        className="rounded-full mb-1 sm:mb-2"
                       />
-                      <p className="text-sm font-medium">{p.player_name}</p>
+                      <p className="text-xs sm:text-sm font-medium text-center truncate w-full">{p.player_name}</p>
                       {p.id === participantId.current && (
-                        <Badge className="mt-1">Tú</Badge>
+                        <Badge className="mt-1 text-xs">{waitingLanguage === 'es' ? 'Tú' : 'You'}</Badge>
                       )}
                     </div>
                   ))}
@@ -272,12 +299,15 @@ export default function GameRoomPage() {
                     className="w-full"
                     disabled={participants.length < 2}
                   >
-                    Iniciar Juego
+                    {waitingLanguage === 'es' ? 'Iniciar Juego' : 'Start Game'}
                   </Button>
                 )}
                 {!isAdmin && (
-                  <p className="text-center text-muted-foreground">
-                    Esperando a que el administrador inicie el juego...
+                  <p className="text-center text-muted-foreground text-sm sm:text-base">
+                    {waitingLanguage === 'es' 
+                      ? 'Esperando a que el administrador inicie el juego...'
+                      : 'Waiting for the administrator to start the game...'
+                    }
                   </p>
                 )}
               </div>
@@ -294,28 +324,30 @@ export default function GameRoomPage() {
     const allAnswered = answeredCount === participants.length;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-2 sm:p-4">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
           <Card>
-            <CardHeader>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <CardTitle className="text-xl">Sala: {room.room_code} (Admin)</CardTitle>
-                  <Badge className={getDifficultyColor(room.difficulty)}>
-                    {room.difficulty.charAt(0).toUpperCase() + room.difficulty.slice(1)}
-                  </Badge>
+            <CardHeader className="p-3 sm:p-6">
+              <div className="flex flex-col gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <CardTitle className="text-lg sm:text-xl">Sala: {room.room_code} (Admin)</CardTitle>
+                    <Badge className={getDifficultyColor(room.difficulty)}>
+                      {room.difficulty.charAt(0).toUpperCase() + room.difficulty.slice(1)}
+                    </Badge>
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">
+                    {language === 'es' ? 'Pregunta' : 'Question'} {currentQuestionIndex + 1} {language === 'es' ? 'de' : 'of'} {allQuestions.length}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Pregunta {currentQuestionIndex + 1} de {questions.length}
-                </div>
-              </div>
-              <Separator className="my-4" />
-              <div className="space-y-2">
-                <Progress value={progress} className="h-2" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{Math.round(progress)}% completado</span>
-                  <span>{answeredCount} / {participants.length} han respondido</span>
+                <Separator className="my-2" />
+                <div className="space-y-2">
+                  <Progress value={progress} className="h-2" />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{Math.round(progress)}% {language === 'es' ? 'completado' : 'completed'}</span>
+                    <span>{answeredCount} / {participants.length} {language === 'es' ? 'han respondido' : 'answered'}</span>
+                  </div>
                 </div>
               </div>
             </CardHeader>
@@ -323,29 +355,31 @@ export default function GameRoomPage() {
 
           {/* Question Card (Admin View) */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-xl md:text-2xl">
-                {currentQuestion.question}
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl md:text-2xl break-words">
+                {questionText}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => (
+            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
+                {orderedOptions.map((option, index) => (
                   <div
                     key={index}
-                    className={`p-4 rounded-md border ${
-                      allAnswered && currentQuestion.correctIndex === index
+                    className={`p-3 sm:p-4 rounded-md border ${
+                      allAnswered && displayCorrectIndex === index
                         ? "bg-green-100 border-green-500 dark:bg-green-900/20"
                         : "bg-muted"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-muted-foreground min-w-[24px]">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="font-semibold text-muted-foreground min-w-[20px] sm:min-w-[24px] text-sm sm:text-base">
                         {index + 1}.
                       </span>
-                      <span className="flex-1">{option}</span>
-                      {allAnswered && currentQuestion.correctIndex === index && (
-                        <Badge className="bg-green-500">Correcta</Badge>
+                      <span className="flex-1 text-sm sm:text-base break-words">{option}</span>
+                      {allAnswered && displayCorrectIndex === index && (
+                        <Badge className="bg-green-500 text-xs sm:text-sm whitespace-nowrap">
+                          {language === 'es' ? 'Correcta' : 'Correct'}
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -358,43 +392,19 @@ export default function GameRoomPage() {
                 className="w-full"
                 disabled={!allAnswered && participants.length > 0}
               >
-                {isLastQuestion ? "Ver Resultados Finales" : "Siguiente Pregunta"}
+                {isLastQuestion 
+                  ? (language === 'es' ? "Ver Resultados Finales" : "View Final Results")
+                  : (language === 'es' ? "Siguiente Pregunta" : "Next Question")
+                }
               </Button>
               {!allAnswered && participants.length > 0 && (
                 <p className="text-sm text-center text-muted-foreground">
-                  Esperando a que todos respondan ({answeredCount}/{participants.length})
+                  {language === 'es' 
+                    ? `Esperando a que todos respondan (${answeredCount}/${participants.length})`
+                    : `Waiting for everyone to answer (${answeredCount}/${participants.length})`
+                  }
                 </p>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Leaderboard */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Puntuaciones</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {participants
-                  .sort((a, b) => b.score - a.score)
-                  .map((p, index) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center gap-3 p-2 rounded-lg border"
-                    >
-                      <span className="font-bold w-8">#{index + 1}</span>
-                      <Image
-                        src={p.avatar_url}
-                        alt={p.player_name}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                      <span className="flex-1 font-medium">{p.player_name}</span>
-                      <Badge>{p.score} puntos</Badge>
-                    </div>
-                  ))}
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -404,28 +414,30 @@ export default function GameRoomPage() {
 
   // Vista del Jugador (puede responder)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-2 sm:p-4">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl">Sala: {room.room_code}</CardTitle>
-                <Badge className={getDifficultyColor(room.difficulty)}>
-                  {room.difficulty.charAt(0).toUpperCase() + room.difficulty.slice(1)}
-                </Badge>
+          <CardHeader className="p-3 sm:p-6">
+            <div className="flex flex-col gap-2 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <CardTitle className="text-lg sm:text-xl">Sala: {room.room_code}</CardTitle>
+                  <Badge className={getDifficultyColor(room.difficulty)}>
+                    {room.difficulty.charAt(0).toUpperCase() + room.difficulty.slice(1)}
+                  </Badge>
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  {language === 'es' ? 'Pregunta' : 'Question'} {currentQuestionIndex + 1} {language === 'es' ? 'de' : 'of'} {allQuestions.length}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                Pregunta {currentQuestionIndex + 1} de {questions.length}
-              </div>
-            </div>
-            <Separator className="my-4" />
-            <div className="space-y-2">
-              <Progress value={progress} className="h-2" />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{Math.round(progress)}% completado</span>
-                <span>{participants.length} jugadores</span>
+              <Separator className="my-2" />
+              <div className="space-y-2">
+                <Progress value={progress} className="h-2" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{Math.round(progress)}% {language === 'es' ? 'completado' : 'completed'}</span>
+                  <span>{participants.length} {language === 'es' ? 'jugadores' : 'players'}</span>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -433,29 +445,29 @@ export default function GameRoomPage() {
 
         {/* Question Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xl md:text-2xl">
-              {currentQuestion.question}
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl break-words">
+              {questionText}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
             <RadioGroup
               value={selectedAnswer?.toString() ?? ""}
               onValueChange={handleAnswerSelect}
-              className="space-y-3"
+              className="space-y-2 sm:space-y-3"
               disabled={hasAnswered}
             >
-              {currentQuestion.options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-3">
+              {orderedOptions.map((option, index) => (
+                <div key={index} className="flex items-start sm:items-center space-x-2 sm:space-x-3">
                   <RadioGroupItem
                     value={index.toString()}
                     id={`option-${index}`}
-                    className="mt-1"
+                    className="mt-1 sm:mt-0 flex-shrink-0"
                     disabled={hasAnswered}
                   />
                   <Label
                     htmlFor={`option-${index}`}
-                    className={`flex-1 cursor-pointer rounded-md border p-4 transition-colors ${
+                    className={`flex-1 cursor-pointer rounded-md border p-3 sm:p-4 transition-colors ${
                       hasAnswered
                         ? (() => {
                             const allAnswered = participants.filter(p => p.current_answer !== null).length === participants.length;
@@ -463,21 +475,21 @@ export default function GameRoomPage() {
                               return selectedAnswer === index ? "bg-blue-100 border-blue-500" : "";
                             }
                             return selectedAnswer === index
-                              ? currentQuestion.correctIndex === index
+                              ? displayCorrectIndex === index
                                 ? "bg-green-100 border-green-500"
                                 : "bg-red-100 border-red-500"
-                              : currentQuestion.correctIndex === index
+                              : displayCorrectIndex === index
                               ? "bg-green-100 border-green-500"
                               : "";
                           })()
                         : "hover:bg-accent"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-muted-foreground min-w-[24px]">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="font-semibold text-muted-foreground min-w-[20px] sm:min-w-[24px] text-sm sm:text-base">
                         {index + 1}.
                       </span>
-                      <span className="flex-1">{option}</span>
+                      <span className="flex-1 text-sm sm:text-base break-words">{option}</span>
                     </div>
                   </Label>
                 </div>
@@ -490,45 +502,15 @@ export default function GameRoomPage() {
                 size="lg"
                 className="w-full"
               >
-                Enviar Respuesta
+                {language === 'es' ? "Enviar Respuesta" : "Submit Answer"}
               </Button>
             )}
 
             {hasAnswered && (
               <p className="text-center text-muted-foreground">
-                Esperando a que todos respondan...
+                {language === 'es' ? "Esperando a que todos respondan..." : "Waiting for everyone to answer..."}
               </p>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Leaderboard */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Puntuaciones</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {participants
-                .sort((a, b) => b.score - a.score)
-                .map((p, index) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 p-2 rounded-lg border"
-                  >
-                    <span className="font-bold w-8">#{index + 1}</span>
-                    <Image
-                      src={p.avatar_url}
-                      alt={p.player_name}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                    <span className="flex-1 font-medium">{p.player_name}</span>
-                    <Badge>{p.score} puntos</Badge>
-                  </div>
-                ))}
-            </div>
           </CardContent>
         </Card>
       </div>

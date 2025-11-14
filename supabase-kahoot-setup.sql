@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS game_rooms (
   current_question_index INTEGER DEFAULT 0,
   started_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_by TEXT -- Nombre del admin que creó la sala
+  created_by TEXT, -- Nombre del admin que creó la sala
+  language TEXT NOT NULL DEFAULT 'es' CHECK (language IN ('es', 'en')),
+  question_order INTEGER[] -- Array de IDs de preguntas en orden aleatorio
 );
 
 -- Tabla de participantes

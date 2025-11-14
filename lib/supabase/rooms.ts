@@ -1,5 +1,7 @@
 import { supabase } from './client';
 import type { Difficulty } from '@/lib/quiz-data';
+import { shuffleQuestions } from '@/lib/quiz-data';
+import { quizData } from '@/lib/quiz-data';
 
 export interface GameRoom {
   id: string;
@@ -11,6 +13,8 @@ export interface GameRoom {
   started_at: string | null;
   created_at: string;
   created_by: string | null;
+  language: 'es' | 'en';
+  question_order: number[] | null; // Array de IDs de preguntas en orden aleatorio
 }
 
 export interface RoomParticipant {
@@ -30,7 +34,8 @@ export interface RoomParticipant {
 export async function createGameRoom(
   difficulty: Difficulty,
   maxPlayers: number,
-  createdBy: string
+  createdBy: string,
+  language: 'es' | 'en' = 'es'
 ): Promise<{ data: GameRoom | null; error: any }> {
   // Generar código de sala único
   let roomCode = '';
@@ -55,6 +60,11 @@ export async function createGameRoom(
     return { data: null, error: { message: 'No se pudo generar un código único' } };
   }
 
+  // Aleatorizar el orden de las preguntas
+  const questions = quizData[difficulty];
+  const shuffled = shuffleQuestions(questions);
+  const questionOrder = shuffled.map(q => q.id);
+
   const { data, error } = await supabase
     .from('game_rooms')
     .insert([
@@ -64,6 +74,8 @@ export async function createGameRoom(
         max_players: maxPlayers,
         status: 'waiting',
         created_by: createdBy,
+        language,
+        question_order: questionOrder,
       },
     ])
     .select()

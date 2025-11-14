@@ -17,6 +17,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [adminName, setAdminName] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty | "">("");
+  const [language, setLanguage] = useState<"es" | "en">("es");
   const [maxPlayers, setMaxPlayers] = useState([10]);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -37,7 +38,8 @@ export default function AdminPage() {
       const { data, error } = await createGameRoom(
         difficulty,
         maxPlayers[0],
-        adminName.trim()
+        adminName.trim(),
+        language
       );
 
       if (error) {
@@ -94,6 +96,34 @@ export default function AdminPage() {
                   onChange={(e) => setAdminName(e.target.value)}
                   className="text-lg"
                 />
+              </div>
+
+              <div className="space-y-4">
+                <Label>Idioma / Language</Label>
+                <RadioGroup
+                  value={language}
+                  onValueChange={(value) => setLanguage(value as "es" | "en")}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div>
+                    <RadioGroupItem value="es" id="es" className="peer sr-only" />
+                    <Label
+                      htmlFor="es"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <span className="text-2xl font-bold">🇪🇸 Español</span>
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem value="en" id="en" className="peer sr-only" />
+                    <Label
+                      htmlFor="en"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <span className="text-2xl font-bold">🇬🇧 English</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
               <div className="space-y-4">
