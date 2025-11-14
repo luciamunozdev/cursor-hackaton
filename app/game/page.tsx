@@ -10,12 +10,13 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { quizData, type Difficulty } from "@/lib/quiz-data";
+import { quizData, type Difficulty, type Language, getQuestionText, getQuestionOptions } from "@/lib/quiz-data";
 
 export default function GamePage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+  const [language, setLanguage] = useState<Language>("es"); // Idioma por defecto: español
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -207,7 +208,7 @@ export default function GamePage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-xl md:text-2xl">
-              {currentQuestion.question}
+              {getQuestionText(currentQuestion, language)}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -216,7 +217,7 @@ export default function GamePage() {
               onValueChange={handleAnswerChange}
               className="space-y-3"
             >
-              {currentQuestion.options.map((option, index) => (
+              {getQuestionOptions(currentQuestion, language).map((option, index) => (
                 <div key={index} className="flex items-center space-x-3">
                   <RadioGroupItem
                     value={index.toString()}
