@@ -23,9 +23,17 @@ export default function Home() {
             <Button
               size="lg"
               className="text-lg px-8 py-6"
+              onClick={() => router.push("/admin")}
+            >
+              Crear Sala (Admin)
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-lg px-8 py-6"
               onClick={() => router.push("/setup")}
             >
-              Comenzar
+              Jugar Solo
             </Button>
             <Button
               size="lg"
