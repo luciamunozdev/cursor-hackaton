@@ -13,10 +13,10 @@ export default function Home() {
         <Card className="shadow-lg">
           <CardHeader className="text-center space-y-4">
             <CardTitle className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Cursor Hackathon Gamification Quiz
+              Cursor Hackathon Quiz
             </CardTitle>
             <CardDescription className="text-lg md:text-xl text-muted-foreground">
-              Pon a prueba tus conocimientos de desarrollo web
+              ¿Cuantos puntos puedes conseguir?
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
@@ -25,7 +25,7 @@ export default function Home() {
               className="text-lg px-8 py-6"
               onClick={() => router.push("/admin")}
             >
-              Crear Sala (Admin)
+              Crear Sala
             </Button>
             <Button
               size="lg"
