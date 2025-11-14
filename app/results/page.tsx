@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { quizData, type Difficulty } from "@/lib/quiz-data";
+import { saveQuizResult } from "@/lib/supabase/queries";
+import { toast } from "sonner";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -15,6 +17,9 @@ export default function ResultsPage() {
   const [totalTime, setTotalTime] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const hasSavedRef = useRef(false); // Ref para evitar guardar dos veces
 
   useEffect(() => {
     const storedName = localStorage.getItem("quizName");
@@ -43,7 +48,48 @@ export default function ResultsPage() {
       }
     });
     setCorrectAnswers(correct);
+
+    // Guardar resultado en Supabase solo una vez
+    if (!hasSavedRef.current) {
+      hasSavedRef.current = true;
+      const percentage = Math.round((correct / questions.length) * 100);
+      saveResultToSupabase(storedName, storedDifficulty, parseInt(storedTime), correct, questions.length, percentage);
+    }
   }, [router]);
+
+  const saveResultToSupabase = async (
+    playerName: string,
+    diff: Difficulty,
+    time: number,
+    correct: number,
+    total: number,
+    percentage: number
+  ) => {
+    setIsSaving(true);
+    try {
+      const { error } = await saveQuizResult({
+        player_name: playerName,
+        difficulty: diff,
+        total_time: time,
+        correct_answers: correct,
+        total_questions: total,
+        score_percentage: percentage,
+      });
+
+      if (error) {
+        console.error("Error saving to Supabase:", error);
+        toast.error("No se pudo guardar el resultado en el leaderboard");
+      } else {
+        setIsSaved(true);
+        toast.success("Resultado guardado en el leaderboard");
+      }
+    } catch (error) {
+      console.error("Error saving to Supabase:", error);
+      toast.error("No se pudo guardar el resultado en el leaderboard");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -126,13 +172,28 @@ export default function ResultsPage() {
             </p>
           </div>
 
-          <Button
-            onClick={handleBackToStart}
-            size="lg"
-            className="w-full text-lg"
-          >
-            Volver al inicio
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => router.push("/leaderboard")}
+              size="lg"
+              variant="outline"
+              className="flex-1 text-lg"
+            >
+              Ver Leaderboard
+            </Button>
+            <Button
+              onClick={handleBackToStart}
+              size="lg"
+              className="flex-1 text-lg"
+            >
+              Volver al inicio
+            </Button>
+          </div>
+          {isSaving && (
+            <p className="text-sm text-center text-muted-foreground">
+              Guardando resultado...
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

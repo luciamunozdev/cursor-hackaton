@@ -19,13 +19,21 @@ export default function Home() {
               Pon a prueba tus conocimientos de desarrollo web
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center pt-6">
+          <CardContent className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Button
               size="lg"
               className="text-lg px-8 py-6"
               onClick={() => router.push("/setup")}
             >
               Comenzar
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-lg px-8 py-6"
+              onClick={() => router.push("/leaderboard")}
+            >
+              Ver Leaderboard
             </Button>
           </CardContent>
         </Card>

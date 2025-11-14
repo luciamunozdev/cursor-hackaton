@@ -15,56 +15,56 @@ export const quizData: QuizData = {
   fácil: [
     {
       id: 1,
-      question: "¿Qué es TypeScript?",
+      question: "What is Cursor?",
       options: [
-        "Un framework de JavaScript",
-        "Un superset de JavaScript que añade tipos estáticos",
-        "Una biblioteca de React",
-        "Un gestor de paquetes"
+        "A web browser",
+        "An AI-powered code editor based on VS Code",
+        "A database management tool",
+        "A version control system"
       ],
       correctIndex: 1
     },
     {
       id: 2,
-      question: "¿Qué significa CSS?",
+      question: "What is the main feature that makes Cursor different from other code editors?",
       options: [
-        "Computer Style Sheets",
-        "Cascading Style Sheets",
-        "Creative Style System",
-        "Coded Style Syntax"
+        "Syntax highlighting",
+        "AI-powered code completion and chat",
+        "File explorer",
+        "Terminal integration"
       ],
       correctIndex: 1
     },
     {
       id: 3,
-      question: "¿Cuál es el método de array que crea un nuevo array con los elementos que pasan una prueba?",
+      question: "How do you open the AI chat in Cursor?",
       options: [
-        "map()",
-        "filter()",
-        "reduce()",
-        "forEach()"
+        "Press Ctrl+Shift+P",
+        "Press Ctrl+L or Cmd+L",
+        "Press Ctrl+K or Cmd+K",
+        "Press Ctrl+J or Cmd+J"
       ],
       correctIndex: 1
     },
     {
       id: 4,
-      question: "¿Qué hace el operador '===' en JavaScript?",
+      question: "What does 'Composer' refer to in Cursor?",
       options: [
-        "Compara valores sin verificar tipos",
-        "Compara valores y tipos (igualdad estricta)",
-        "Asigna un valor a una variable",
-        "Compara solo tipos"
+        "A music player",
+        "A feature for editing multiple files with AI",
+        "A code formatter",
+        "A theme editor"
       ],
       correctIndex: 1
     },
     {
       id: 5,
-      question: "¿Qué es React?",
+      question: "What keyboard shortcut opens inline AI suggestions in Cursor?",
       options: [
-        "Un lenguaje de programación",
-        "Una biblioteca de JavaScript para construir interfaces de usuario",
-        "Un servidor web",
-        "Una base de datos"
+        "Ctrl+Space",
+        "Ctrl+K or Cmd+K",
+        "Ctrl+Enter",
+        "Ctrl+Shift+K"
       ],
       correctIndex: 1
     }
@@ -72,56 +72,56 @@ export const quizData: QuizData = {
   medio: [
     {
       id: 1,
-      question: "¿Qué es el Virtual DOM en React?",
+      question: "What is 'Tab' in Cursor?",
       options: [
-        "Un DOM real renderizado en el navegador",
-        "Una representación en memoria del DOM que React usa para optimizar actualizaciones",
-        "Un plugin de navegador",
-        "Una herramienta de debugging"
+        "A browser tab",
+        "AI-powered autocomplete that suggests code as you type",
+        "A file tab",
+        "A keyboard key"
       ],
       correctIndex: 1
     },
     {
       id: 2,
-      question: "¿Qué hook de React se usa para manejar efectos secundarios?",
+      question: "How can you use Cursor to refactor code across multiple files?",
       options: [
-        "useState",
-        "useEffect",
-        "useContext",
-        "useReducer"
+        "Using the Find and Replace feature",
+        "Using Composer with @-mentions to reference multiple files",
+        "Manually editing each file",
+        "Using Git commands"
       ],
       correctIndex: 1
     },
     {
       id: 3,
-      question: "¿Qué es Server-Side Rendering (SSR)?",
+      question: "What does the '@' symbol do in Cursor's chat?",
       options: [
-        "Renderizar componentes en el cliente",
-        "Renderizar páginas en el servidor antes de enviarlas al cliente",
-        "Un método de almacenamiento",
-        "Una técnica de optimización de imágenes"
+        "Mentions a user",
+        "References files, folders, or code selections in your workspace",
+        "Creates a comment",
+        "Opens the command palette"
       ],
       correctIndex: 1
     },
     {
       id: 4,
-      question: "¿Qué hace 'useMemo' en React?",
+      question: "What is 'Cmd+K' (or Ctrl+K) used for in Cursor?",
       options: [
-        "Memoriza un valor calculado para evitar recálculos innecesarios",
-        "Memoriza una función",
-        "Crea un nuevo componente",
-        "Actualiza el estado"
+        "Opening the terminal",
+        "Triggering inline AI edits in the current file",
+        "Saving the file",
+        "Closing the editor"
       ],
-      correctIndex: 0
+      correctIndex: 1
     },
     {
       id: 5,
-      question: "¿Qué es el patrón de diseño 'Higher-Order Component' (HOC)?",
+      question: "How does Cursor's AI understand your codebase context?",
       options: [
-        "Un componente que renderiza otros componentes",
-        "Una función que toma un componente y devuelve un nuevo componente",
-        "Un componente de orden superior en la jerarquía",
-        "Un componente con múltiples props"
+        "By reading all files at once",
+        "By using embeddings and semantic search to find relevant code",
+        "By asking you questions",
+        "By analyzing Git history only"
       ],
       correctIndex: 1
     }
@@ -129,58 +129,58 @@ export const quizData: QuizData = {
   difícil: [
     {
       id: 1,
-      question: "¿Qué es el 'hydration' en Next.js?",
+      question: "What is the difference between Cursor's 'Chat' and 'Composer' features?",
       options: [
-        "El proceso de convertir HTML estático en una aplicación React interactiva",
-        "Un método de hidratación de datos",
-        "Una técnica de optimización de imágenes",
-        "Un proceso de autenticación"
+        "Chat is for single files, Composer is for multiple files",
+        "Chat provides conversational assistance, Composer allows multi-file editing with AI",
+        "There is no difference",
+        "Chat is free, Composer requires payment"
       ],
-      correctIndex: 0
+      correctIndex: 1
     },
     {
       id: 2,
-      question: "¿Qué diferencia hay entre 'useCallback' y 'useMemo'?",
+      question: "How does Cursor's AI handle code context when you use @-mentions?",
       options: [
-        "useCallback memoriza funciones, useMemo memoriza valores",
-        "No hay diferencia",
-        "useCallback es para valores, useMemo para funciones",
-        "Ambos memorizan funciones"
+        "It reads the entire file",
+        "It uses semantic search to find relevant code sections and includes them in the context",
+        "It only reads the first 100 lines",
+        "It requires manual code selection"
       ],
-      correctIndex: 0
+      correctIndex: 1
     },
     {
       id: 3,
-      question: "¿Qué es 'code splitting'?",
+      question: "What is 'Agent Mode' in Cursor?",
       options: [
-        "Dividir código en múltiples archivos",
-        "Dividir el código de la aplicación en chunks más pequeños que se cargan bajo demanda",
-        "Separar código por lenguajes",
-        "Una técnica de minificación"
+        "A debugging tool",
+        "A feature where AI can autonomously make changes across your codebase",
+        "A code formatter",
+        "A terminal emulator"
       ],
       correctIndex: 1
     },
     {
       id: 4,
-      question: "¿Qué es el 'Suspense' en React?",
+      question: "How can you prevent Cursor from accessing certain files or folders?",
       options: [
-        "Un componente que permite mostrar un fallback mientras se carga contenido asíncrono",
-        "Un método de manejo de errores",
-        "Un hook para estados de carga",
-        "Una técnica de optimización"
+        "Using .cursorignore file",
+        "Using .gitignore file",
+        "Using .cursorignore or .gitignore file",
+        "There is no way to exclude files"
       ],
-      correctIndex: 0
+      correctIndex: 2
     },
     {
       id: 5,
-      question: "¿Qué es 'Streaming SSR' en Next.js 13+?",
+      question: "What is the purpose of Cursor's 'Rules' feature?",
       options: [
-        "Transmitir HTML en chunks mientras se renderiza en el servidor",
-        "Un método de streaming de video",
-        "Una técnica de caché",
-        "Un protocolo de red"
+        "To enforce code style",
+        "To provide custom instructions and guidelines for the AI to follow",
+        "To validate syntax",
+        "To manage keyboard shortcuts"
       ],
-      correctIndex: 0
+      correctIndex: 1
     }
   ]
 };
